@@ -12,27 +12,8 @@ import lbs.mvcn.view.IView;
 
 /**
  *
- * @author lenovo z40
+ * @author spiralhalo
  */
-enum ButtonEnum {
-    NAME_OK,
-    CHANGE_NAME,
-    CREATE_SERVER,
-    SERVERNAME_OK,
-    SERVER_START,
-    JOIN_SERVER,
-    CLIENT_READY
-}
-
-enum StateEnum {
-    NOT_INGAME,
-    PREGAME,
-    ARRANGING_SHIPS,
-    WAITING_FOR_PLAYER_DECISION,
-    DECISION_MADE_WAITING_FOR_SERVER,
-    SERVER_REPLIED_EXECUTING_BEGIN_NEXT_ROUND,
-    SERVER_DECLARED_GAME_END;
-}
 
 public class MainController implements IViewController, INetController{
     
@@ -45,6 +26,7 @@ public class MainController implements IViewController, INetController{
        this.view = view;
        
        view.setController(this);
+       view.showLoadingScreen();
    }
    
     public void createNewNetworker(){
@@ -84,6 +66,11 @@ public class MainController implements IViewController, INetController{
             default:
                 throw new AssertionError(buttonId.name());
         }
+    }
+
+    @Override
+    public void onLoadingEnd() {
+        view.showInputNameScreen();
     }
 
     @Override

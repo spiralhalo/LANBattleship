@@ -12,6 +12,7 @@ package lbs.mvcn.controller;
  */
 public interface IViewController {
     
+    public void onLoadingEnd();
     public void onButtonClick(ButtonEnum buttonId);
     public void onGridButtonClick(int index);
     

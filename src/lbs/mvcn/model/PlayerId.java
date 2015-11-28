@@ -15,10 +15,12 @@ import lbs.net.ServerThread;
 public class PlayerId {
     
     public final int id;
+    public final String ip;
     public final String name;
     
-    public PlayerId(String playerName, int serverId) {
+    public PlayerId(String playerName, String ipAddress, int serverId) {
         name = playerName;
+        ip = ipAddress;
         id = serverId;
     }
     

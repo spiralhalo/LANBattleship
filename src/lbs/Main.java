@@ -6,6 +6,7 @@
  */
 package lbs;
 
+import lbs.mvcn.controller.MainController;
 import lbs.mvcn.view.MainView;
 
 /**
@@ -34,7 +35,7 @@ public class Main {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainView().setVisible(true);
+                MainController mainController = new MainController(new MainView());
             }
         });
     }

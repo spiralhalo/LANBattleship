@@ -12,8 +12,10 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
+import javax.swing.table.DefaultTableModel;
 import lbs.mvcn.controller.IViewController;
 import lbs.mvcn.model.IModel;
+import lbs.mvcn.controller.ButtonEnum;
 /**
  *
  * @author nanashi95
@@ -25,14 +27,7 @@ public class MainView extends JFrame implements IView, ActionListener{
     private JButton gridButton[][];
     private CardLayout cards;
     
-    //GAME STATES
-    int currentState = 0;
-    static final int STATE_NOT_INGAME = 0;
-    static final int STATE_ARRANGING_SHIPS = 1;
-    static final int STATE_WAITING_FOR_PLAYER_DECISION = 2;
-    static final int STATE_DECISION_MADE_WAITING_FOR_SERVER = 3;
-    static final int STATE_SERVER_REPLIED_EXECUTING_BEGIN_NEXT_ROUND = 4;
-    static final int STATE_SERVER_DECLARED_GAME_END = 5;
+    private String currentCard;
     
     /**
      * Creates new form Main
@@ -49,6 +44,17 @@ public class MainView extends JFrame implements IView, ActionListener{
         cards = (CardLayout)carder.getLayout();
         
         buttonAcceptName.addActionListener(this);
+        buttonChangeName.addActionListener(this);
+        buttonCreate.addActionListener(this);
+        buttonJoin.addActionListener(this);
+        buttonLeave.addActionListener(this);
+        buttonReady.addActionListener(this);
+        buttonStart.addActionListener(this);
+    }
+    
+    private void showCard(String cardName) {
+        currentCard = cardName;
+        cards.show(this, cardName);
     }
     
     @Override
@@ -62,44 +68,78 @@ public class MainView extends JFrame implements IView, ActionListener{
     }
     
     @Override
-    public void actionPerformed(ActionEvent e) {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void diplay(){
+        this.setVisible(true);
     }
-        @Override
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource().equals(buttonAcceptName)){
+            controller.onButtonClick(ButtonEnum.NAME_OK);
+        } else if(e.getSource().equals(buttonCreate)){
+            controller.onButtonClick(ButtonEnum.CREATE_SERVER);
+        } else if(e.getSource().equals(buttonJoin)){
+            controller.onButtonClick(ButtonEnum.JOIN_SERVER);
+        } 
+    }
+    
+    @Override
     public void showLoadingScreen() {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        showCard("loading");
     }
 
     @Override
     public void showInputNameScreen() {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        showCard("start");
     }
 
     @Override
-    public void showMainMenuScreen() {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void showMainMenuScreen(String playerName) {
+        labelNameShow.setText("Your name is : "+playerName);
+        textMenuName.setText(playerName);
+        showCard("menu");
     }
 
     @Override
     public void showCreateServerScreen() {
+        showCard("create");
+    }
+    
+    @Override
+    public String getNameInput() {
+        switch(currentCard) {
+            case "start" : return textStartName.getText();
+            default : return textMenuName.getText();
+        }
+    }
+
+    @Override
+    public String serverNameInput() {
         //TODO Implement this.
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void showLobbyScreen() {
+    public String destHostNameInput() {
         //TODO Implement this.
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
+    public void showJoinScreen() {
+        
+    }
+
+    @Override
+    public void showLobbyScreen(String serverName, String ipAddress) {
+        labelServerName.setText(serverName);
+        labelIp.setText(ipAddress);
+        showCard("lobby");
     }
 
     @Override
     public void refreshReadyList() {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ((FixedLengthTableModel)tableRooster.getModel()).fireTableDataChanged();
     }
 
     @Override
@@ -296,17 +336,25 @@ public class MainView extends JFrame implements IView, ActionListener{
         startPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        textStartName = new javax.swing.JTextField();
         buttonAcceptName = new javax.swing.JButton();
-        createPanel = new javax.swing.JPanel();
-        joinPanel = new javax.swing.JPanel();
         menuPanel = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
-        jButton402 = new javax.swing.JButton();
-        jButton401 = new javax.swing.JButton();
-        jButton403 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
+        buttonJoin = new javax.swing.JButton();
+        buttonCreate = new javax.swing.JButton();
+        buttonChangeName = new javax.swing.JButton();
+        textMenuName = new javax.swing.JTextField();
+        labelNameShow = new javax.swing.JLabel();
+        createPanel = new javax.swing.JPanel();
+        joinPanel = new javax.swing.JPanel();
+        lobbyPanel = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tableRooster = new javax.swing.JTable();
+        buttonStart = new javax.swing.JButton();
+        labelIp = new javax.swing.JLabel();
+        buttonReady = new javax.swing.JButton();
+        buttonLeave = new javax.swing.JButton();
+        labelServerName = new javax.swing.JLabel();
         gamePanel = new javax.swing.JPanel();
         left = new javax.swing.JPanel();
         middle = new javax.swing.JPanel();
@@ -379,8 +427,8 @@ public class MainView extends JFrame implements IView, ActionListener{
         jLabel4.setFont(jLabel4.getFont().deriveFont((float)24));
         jLabel4.setText("Your name:");
 
-        jTextField2.setFont(jTextField2.getFont().deriveFont((float)24));
-        jTextField2.setText("Rookie");
+        textStartName.setFont(textStartName.getFont().deriveFont((float)24));
+        textStartName.setText("Rookie");
 
         buttonAcceptName.setFont(buttonAcceptName.getFont().deriveFont((float)24));
         buttonAcceptName.setText("OK");
@@ -395,7 +443,7 @@ public class MainView extends JFrame implements IView, ActionListener{
                         .addContainerGap()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(textStartName, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(185, 185, 185)
                         .addComponent(buttonAcceptName, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -407,7 +455,7 @@ public class MainView extends JFrame implements IView, ActionListener{
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(textStartName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(buttonAcceptName)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -431,6 +479,70 @@ public class MainView extends JFrame implements IView, ActionListener{
         );
 
         carder.add(startPanel, "start");
+
+        buttonJoin.setFont(buttonJoin.getFont().deriveFont((float)24));
+        buttonJoin.setText("Join Room");
+
+        buttonCreate.setFont(buttonCreate.getFont().deriveFont((float)24));
+        buttonCreate.setText("Create Room");
+
+        buttonChangeName.setText("Change Name");
+
+        textMenuName.setText("Rookie");
+
+        labelNameShow.setText("Your name is: Rookie");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(buttonCreate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonJoin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                            .addComponent(textMenuName, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(buttonChangeName)))
+                    .addComponent(labelNameShow))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(labelNameShow)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(textMenuName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonChangeName))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(buttonJoin, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout menuPanelLayout = new javax.swing.GroupLayout(menuPanel);
+        menuPanel.setLayout(menuPanelLayout);
+        menuPanelLayout.setHorizontalGroup(
+            menuPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(menuPanelLayout.createSequentialGroup()
+                .addGap(159, 159, 159)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(160, Short.MAX_VALUE))
+        );
+        menuPanelLayout.setVerticalGroup(
+            menuPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(menuPanelLayout.createSequentialGroup()
+                .addGap(132, 132, 132)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(173, Short.MAX_VALUE))
+        );
+
+        carder.add(menuPanel, "menu");
 
         javax.swing.GroupLayout createPanelLayout = new javax.swing.GroupLayout(createPanel);
         createPanel.setLayout(createPanelLayout);
@@ -458,69 +570,66 @@ public class MainView extends JFrame implements IView, ActionListener{
 
         carder.add(joinPanel, "join");
 
-        jButton402.setFont(jButton402.getFont().deriveFont((float)24));
-        jButton402.setText("Join Room");
+        tableRooster.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane2.setViewportView(tableRooster);
 
-        jButton401.setFont(jButton401.getFont().deriveFont((float)24));
-        jButton401.setText("Create Room");
+        buttonStart.setText("Start");
 
-        jButton403.setText("Change Name");
+        labelIp.setText("Your ip address is:");
 
-        jTextField1.setText("Rookie");
+        buttonReady.setText("Ready");
 
-        jLabel3.setText("Your name is: Rookie");
+        buttonLeave.setText("Leave");
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        labelServerName.setFont(labelServerName.getFont().deriveFont(labelServerName.getFont().getStyle() | java.awt.Font.BOLD));
+        labelServerName.setText("The Anumans");
+        labelServerName.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 15, 0, 0));
+
+        javax.swing.GroupLayout lobbyPanelLayout = new javax.swing.GroupLayout(lobbyPanel);
+        lobbyPanel.setLayout(lobbyPanelLayout);
+        lobbyPanelLayout.setHorizontalGroup(
+            lobbyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(lobbyPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jButton401, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton402, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(jButton403)))
-                    .addComponent(jLabel3))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(lobbyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2)
+                    .addGroup(lobbyPanelLayout.createSequentialGroup()
+                        .addComponent(labelIp, javax.swing.GroupLayout.PREFERRED_SIZE, 384, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonLeave, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonReady, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(buttonStart, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+            .addComponent(labelServerName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton403))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton401, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton402, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        javax.swing.GroupLayout menuPanelLayout = new javax.swing.GroupLayout(menuPanel);
-        menuPanel.setLayout(menuPanelLayout);
-        menuPanelLayout.setHorizontalGroup(
-            menuPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(menuPanelLayout.createSequentialGroup()
-                .addGap(159, 159, 159)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(160, Short.MAX_VALUE))
-        );
-        menuPanelLayout.setVerticalGroup(
-            menuPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(menuPanelLayout.createSequentialGroup()
-                .addGap(132, 132, 132)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(173, Short.MAX_VALUE))
+        lobbyPanelLayout.setVerticalGroup(
+            lobbyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, lobbyPanelLayout.createSequentialGroup()
+                .addComponent(labelServerName, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(lobbyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(buttonStart)
+                    .addComponent(labelIp)
+                    .addComponent(buttonReady)
+                    .addComponent(buttonLeave))
+                .addContainerGap())
         );
 
-        carder.add(menuPanel, "menu");
+        carder.add(lobbyPanel, "lobby");
 
         gamePanel.setLayout(new java.awt.GridLayout(2, 3, 2, 2));
 
@@ -630,38 +739,43 @@ public class MainView extends JFrame implements IView, ActionListener{
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton buttonAcceptName;
+    private javax.swing.JButton buttonChangeName;
+    private javax.swing.JButton buttonCreate;
+    private javax.swing.JButton buttonJoin;
+    private javax.swing.JButton buttonLeave;
+    private javax.swing.JButton buttonReady;
+    private javax.swing.JButton buttonStart;
     private javax.swing.JPanel carder;
     private javax.swing.JPanel controlL;
     private javax.swing.JPanel controlR;
     private javax.swing.JPanel createPanel;
     private javax.swing.JPanel gamePanel;
-    private javax.swing.JButton jButton401;
-    private javax.swing.JButton jButton402;
-    private javax.swing.JButton jButton403;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JPanel joinPanel;
+    private javax.swing.JLabel labelIp;
+    private javax.swing.JLabel labelNameShow;
+    private javax.swing.JLabel labelServerName;
     private javax.swing.JPanel left;
     private javax.swing.JPanel loadingPanel;
+    private javax.swing.JPanel lobbyPanel;
     private javax.swing.JPanel menuPanel;
     private javax.swing.JPanel middle;
     private javax.swing.JPanel right;
     private javax.swing.JPanel self;
     private javax.swing.JTable standingsTable;
     private javax.swing.JPanel startPanel;
+    private javax.swing.JTable tableRooster;
+    private javax.swing.JTextField textMenuName;
+    private javax.swing.JTextField textStartName;
     private javax.swing.JPanel title;
     // End of variables declaration//GEN-END:variables
-
-
-
 
 }

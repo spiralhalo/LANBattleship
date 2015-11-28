@@ -16,12 +16,17 @@ import lbs.mvcn.model.IModel;
 public interface IView {
     
     public void setController(IViewController controller);
+    public void diplay();
     public void setModel(IModel model);
     public void showLoadingScreen();
     public void showInputNameScreen();
-    public void showMainMenuScreen();
+    public void showMainMenuScreen(String playerName);
+    public String getNameInput();
     public void showCreateServerScreen();
-    public void showLobbyScreen();
+    public String serverNameInput();
+    public void showJoinScreen();
+    public String destHostNameInput();
+    public void showLobbyScreen(String serverName, String ipAddress);
     public void refreshReadyList();
     public void showClientButtonsOnly();
     public void showServerButtonsOnly();

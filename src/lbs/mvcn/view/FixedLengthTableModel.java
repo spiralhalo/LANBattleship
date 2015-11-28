@@ -15,14 +15,30 @@ import javax.swing.table.AbstractTableModel;
 public class FixedLengthTableModel extends AbstractTableModel {
     
     private Object[][] source;
+    private String[] columnName;
     
-    public FixedLengthTableModel (Object[][] source) {
+    public FixedLengthTableModel (Object[][] source, String[] columnName) {
         
+        this.columnName = columnName;
         if(source.length != 0)
             this.source = source;
         else
             this.source = new Object[1][1];
             
+    }
+    
+    @Override
+    public String getColumnName(int column) {
+        
+        if (columnName != null && column < columnName.length)
+            return columnName[column];
+        
+        String result = "";
+        for (; column >= 0; column = column / 26 - 1) {
+            result = (char)((char)(column%26)+'A') + result;
+        }
+        return result;
+        
     }
     
     @Override
