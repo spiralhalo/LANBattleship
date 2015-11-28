@@ -6,8 +6,6 @@
  */
 package lbs.mvcn.model;
 
-import lbs.net.ServerThread;
-
 /**
  *
  * @author spiralhalo

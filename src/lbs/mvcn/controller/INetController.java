@@ -12,6 +12,7 @@ package lbs.mvcn.controller;
  */
 public interface INetController {
     
+//    public void onConnectionSuccessful(String ipAddress);     //Note: handle successful connection from onReceiveFromServer using a certain "connection success" message
     public void onReceiveFromServer(String message);
     public void onThreadClosed();
     

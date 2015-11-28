@@ -14,8 +14,9 @@ import lbs.mvcn.controller.INetController;
  */
 public interface INetworker {
     
+    public String getIpAddress();
     public void setController(INetController controller);
-    public boolean connectToServer(String hostname, int port);
+    public int connectToServer(String clientName, String hostname, int port);
     public void closeConnection();
     public boolean isConnected();
     public void sendMessage(String message);

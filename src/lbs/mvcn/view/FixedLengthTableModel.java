@@ -20,10 +20,7 @@ public class FixedLengthTableModel extends AbstractTableModel {
     public FixedLengthTableModel (Object[][] source, String[] columnName) {
         
         this.columnName = columnName;
-        if(source.length != 0)
-            this.source = source;
-        else
-            this.source = new Object[1][1];
+        this.source = source;
             
     }
     
@@ -43,7 +40,11 @@ public class FixedLengthTableModel extends AbstractTableModel {
     
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return source[0][columnIndex].getClass();
+        try{
+            return source[0][columnIndex].getClass();
+        } catch (NullPointerException e){
+            return Object.class;
+        }
     }
     
     @Override
@@ -53,7 +54,7 @@ public class FixedLengthTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return source[0].length;
+        return columnName.length;
     }
 
     @Override

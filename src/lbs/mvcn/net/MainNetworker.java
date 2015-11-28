@@ -15,7 +15,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import lbs.mvcn.controller.INetController;
 import java.lang.Thread.State;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
+import static lbs.mvcn.net.protocol.ClientHeaders.*;
+import static lbs.mvcn.net.protocol.Codec.*;
 /**
  *
  * @author spiralhalo
@@ -37,29 +42,42 @@ public class MainNetworker extends Thread implements INetworker{
     @Override
     public void sendMessage(String message) {
         if (!connected) return;
+        System.out.println("networker <send> : "+message);
         out.println(message);
     }
 
     @Override
-    public boolean connectToServer(String hostname, int port) {
-        if (getState()!=State.NEW || !connected) return false;
+    public int connectToServer(String clientName, String hostname, int port) {
+        if (getState()!=State.NEW || connected) return 1;
         try{
             sock = new Socket(hostname, port);
-            out = new PrintWriter(sock.getOutputStream());
+            out = new PrintWriter(sock.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
             connected = true;
+            sendMessage(encode(META_NAME, clientName));
             this.start();
+        }  catch (UnknownHostException e){
+            return 2;
+        } catch (ConnectException e){
+            return 3;
+        } catch (SocketException e){
+            return 4;
         } catch (IOException ex) {
             Logger.getLogger(MainNetworker.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return connected;
+        return (connected?0:1);
     }
     
     @Override
     public void closeConnection() {
         if (!connected) return;
+        connected = false;
+        cleanup();
+    }
+    
+    private void cleanup(){
         try{
-            if(sock!=null)
+            if(sock!=null && sock.isConnected())
                 sock.close();
             if(in!=null)
                 in.close();
@@ -68,7 +86,6 @@ public class MainNetworker extends Thread implements INetworker{
         } catch (IOException ex) {
             Logger.getLogger(MainNetworker.class.getName()).log(Level.SEVERE, null, ex);
         }
-        connected = false;
     }
     
     @Override
@@ -84,13 +101,21 @@ public class MainNetworker extends Thread implements INetworker{
                 }
             } catch (IOException ex) {
                 Logger.getLogger(MainNetworker.class.getName()).log(Level.SEVERE, null, ex);
+                connected = false;
             }
         }
+        cleanup();
+        controller.onThreadClosed();
     }
 
     @Override
     public boolean isConnected() {
         return connected;
+    }
+
+    @Override
+    public String getIpAddress() {
+        return sock.getLocalAddress().getHostAddress();
     }
     
 }

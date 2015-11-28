@@ -4,22 +4,16 @@
  *  You are free to modify and reuse this program code for commercial and non-commercial purpose
  *  with the condition that you removed this license header or replaced it with your own.
  */
-package lbs.mvcn.controller;
+package lbs.mvcn.net.protocol;
 
 /**
  *
  * @author spiralhalo
  */
-public enum ButtonEnum {
-    NAME_OK,
-    CHANGE_NAME,
-    CREATE_SERVER,
-    JOIN_SERVER,
-    SERVERNAME_OK,
-    HOSTNAME_OK,
-    SERVER_START,
-    CLIENT_READY,
-    CLIENT_UNREADY,
-    CLIENT_LEAVE,
-    TO_TITLE
+public class ServerHeaders {
+    
+    public static final String S_CONNECT_OK = "connect ok";
+    public static final String S_ROOSTER = "player list";
+    public static final String S_START = "start";
+    
 }

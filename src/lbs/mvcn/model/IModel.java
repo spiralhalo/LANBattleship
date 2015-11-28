@@ -12,11 +12,18 @@ package lbs.mvcn.model;
  */
 public interface IModel {
     
-    public PlayerId add(int playerId, String ipAddress, String playerName); 
-    public int getPlayerCount();    
+    public void resetAll();
+    public PlayerId addIfNotExist(int playerId, String ipAddress, String playerName); 
+    public int getPlayerCount();
+    public int getReadyCount();
+    public void trimNonReady(); //remove non-ready players
     public void remove(PlayerId id);
-    public void setReady(boolean value);
-    public void setAttacked(boolean value);
+    public void setReady(PlayerId id, boolean value);
+    public void setAttacked(PlayerId id, boolean value);
+    public String getRoosterBroadcast();
+    public String getStartBroadcast();
+    public String getStandingsBroadcast();
+    public String getGridBroadcast();
     public void createOrUpdateRooster();
     public void createOrUpdateStandings();
     public void createResult();
