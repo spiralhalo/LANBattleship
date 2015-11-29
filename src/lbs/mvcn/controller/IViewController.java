@@ -6,6 +6,8 @@
  */
 package lbs.mvcn.controller;
 
+import lbs.mvcn.model.PlayerId;
+
 /**
  *
  * @author lenovo z40
@@ -14,6 +16,9 @@ public interface IViewController {
     
     public void onLoadingEnd();
     public void onButtonClick(ButtonEnum buttonId);
-    public void onGridButtonClick(int index);
+    public void onGridButtonClick(PlayerId target, int index);
+    public void onPlaceShip(int index, int size, boolean vertical);
+    public void onFinishPlacingShip();
+    public void onFinishExecution();
     
 }

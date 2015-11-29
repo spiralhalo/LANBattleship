@@ -8,6 +8,7 @@ package lbs.mvcn.view;
 
 import lbs.mvcn.controller.IViewController;
 import lbs.mvcn.model.IModel;
+import lbs.mvcn.model.PlayerId;
 
 /**
  *
@@ -29,14 +30,17 @@ public interface IView {
     public String getDestHostNameInput();
     public void showLobbyScreen(String serverName, String ipAddress);
     public void updateRoosterTable();
+    public void updateStandingsTable(boolean passive);
     public void showClientButtonsOnly();
     public void showServerButtonsOnly();
-    public void showGameScreen();
+    public void showGameScreen(PlayerId[] pidArrangement);
     public void modePlacing();
     public void modeBegin();
     public void modeWaiting();
     public void modeExecute();
+    public void modeDead();
     public void cleanGameScreen();
     public void showResultScreen();
+    public void displayTurn(boolean myTurn);
     
 }

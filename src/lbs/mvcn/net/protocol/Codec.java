@@ -20,15 +20,26 @@ public class Codec {
     public static String encode(String header, String... args) {
         switch(header){
             case S_CONNECT_OK:
+            case S_ATTACK:
+            case S_TURN:
+                return header + separator + args[0] + separator + args[1];
             case S_ROOSTER:
             case S_START:
+            case S_PLACEMENT:
+            case S_ATTACKS:
+            case S_FINISH:
                 return header + separator + args[0];
             case META_NAME:
                 return META_NAME + separator + args[0];
             case C_MASTER:
             case C_READY:
             case C_UNREADY:
+            case C_DEAD:
                 return header;
+            case C_PLACEMENT:
+                return header + separator + args[0];
+            case C_ATTACK:
+                return header + separator + args[0] + separator + args[1] + separator + args[2];
         }
         return null;
     }

@@ -13,8 +13,11 @@ package lbs.mvcn.net.protocol;
 public class ClientHeaders {
     
     public static final String META_NAME    = "name";
-    public static final String C_MASTER  = "master";
-    public static final String C_READY   = "ready";
-    public static final String C_UNREADY = "unready";
+    public static final String C_MASTER     = "master";
+    public static final String C_READY      = "ready";
+    public static final String C_UNREADY    = "unready";
+    public static final String C_PLACEMENT  = "placement data";
+    public static final String C_ATTACK     = "confirm attack";
+    public static final String C_DEAD       = "dead";
     
 }

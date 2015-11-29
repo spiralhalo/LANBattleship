@@ -10,7 +10,7 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  *
- * @author lenovo z40
+ * @author spiralhalo
  */
 public class FixedLengthTableModel extends AbstractTableModel {
     

@@ -73,11 +73,21 @@ public class MainServer extends Thread implements IServer{
     public String getIpAddress() {
         return ssock.getInetAddress().getHostAddress();
     }
+    
+    private void cleanup(){
+        try {
+            ssock.close();
+        } catch (IOException ex) {
+            Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     @Override
     public void closeAll() {
-        //TODO Implement this.
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.alive = false;
+        for(int c:childServer.keySet())
+            childServer.get(c).cancel();
+        cleanup();
     }
 
     @Override

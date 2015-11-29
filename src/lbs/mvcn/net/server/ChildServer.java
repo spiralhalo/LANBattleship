@@ -64,7 +64,7 @@ public class ChildServer extends Thread {
                     String[] decoded = Codec.decode(read);
                     if(decoded[0].equals(META_NAME) && controller.isJoiningAllowed()){
                         clientName = decoded[1];
-                        String message = encode(S_CONNECT_OK, serverName);
+                        String message = encode(S_CONNECT_OK, ""+id, serverName);
                         System.out.println("child "+id+" <send> :"+message);
                         out.println(message);
                         controller.onClientJoined(getIpAddress(), clientName, id);
