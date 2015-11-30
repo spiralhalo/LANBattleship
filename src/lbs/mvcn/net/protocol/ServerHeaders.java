@@ -12,13 +12,15 @@ package lbs.mvcn.net.protocol;
  */
 public class ServerHeaders {
     
-    public static final String S_CONNECT_OK = "connect ok";
-    public static final String S_ROOSTER    = "player list";
-    public static final String S_START      = "start";
-    public static final String S_PLACEMENT  = "all grid data";
-    public static final String S_ATTACK     = "player attack decision";
-    public static final String S_ATTACKS    = "attack targets";
-    public static final String S_FINISH     = "finish";
-    public static final String S_TURN       = "player turn";
+    public static final String S_CONNECT_OK = "connect ok"      ;
+    public static final String S_ROOSTER    = "player list"     ;
+    public static final String S_START      = "start"           ;
+    public static final String S_PLACEMENT  = "all grid data"   ;
+    public static final String S_ATTACK     = "player attacks"  ;
+    public static final String S_ATTACKS    = "attakcs"         ;
+    public static final String S_FINISH     = "finish"          ;
+    public static final String S_TURN       = "player turn"     ;
+    public static final String S_DEAD       = "player dead"     ;
+    public static final String S_DISCONNECT = "disconnected"    ;
     
 }

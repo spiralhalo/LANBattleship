@@ -28,7 +28,8 @@ import lbs.mvcn.model.PlayerId;
  *
  * @author nanashi95
  */
-public class MainView extends JFrame implements IView, ActionListener, MouseListener, KeyListener{
+public class MainView extends JFrame implements IView, ActionListener,
+        MouseListener, KeyListener{
     
     private final ImageIcon[] icons = new ImageIcon[14];
     private final ImageIcon[] ghost_icons = new ImageIcon[6];
@@ -39,6 +40,7 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
     private CardLayout cards;
     
     private final Color NavyBlue = new Color(40,44,77);
+    private final Color DarkRed = new Color(66,44,40);
     private final Color SkyBlue = new Color(80,151,230);
     
     private final String placingHint =
@@ -76,10 +78,12 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
         
         icons[0] = null;
         for(int i = 1; i<icons.length; i++)
-            icons[i] = new javax.swing.ImageIcon(getClass().getResource("/lbs/gfx/"+i+".png"));
+            icons[i] = new javax.swing.ImageIcon(getClass()
+                    .getResource("/lbs/gfx/"+i+".png"));
         
         for(int i = 1; i<ghost_icons.length+1; i++)
-            ghost_icons[i-1] = new javax.swing.ImageIcon(getClass().getResource("/lbs/gfx/ghost"+i+".png"));
+            ghost_icons[i-1] = new javax.swing.ImageIcon(getClass()
+                    .getResource("/lbs/gfx/ghost"+i+".png"));
         
         left.setBackground(Color.lightGray);
         middle.setBackground(Color.lightGray);
@@ -99,7 +103,8 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
         this.model = model;
         
         model.createOrUpdateRooster();
-        tableRooster.setModel(new FixedLengthTableModel( model.getRoosterData(), new String[]{"IP Address", "Player Name", "Ready"}));
+        tableRooster.setModel(new FixedLengthTableModel( model.getRoosterData(),
+                new String[]{"IP Address", "Player Name", "Ready"}));
         ((FixedLengthTableModel)tableRooster.getModel()).fireTableDataChanged();
     }
     
@@ -156,7 +161,8 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
             controller.onButtonClick(ButtonEnum.CLIENT_LEAVE);
         } else if(e.getSource().equals(buttonStart)){
             controller.onButtonClick(ButtonEnum.SERVER_START);
-        } else if(e.getSource().equals(buttonX) || e.getSource().equals(buttonX1) || e.getSource().equals(buttonX2) ){
+        } else if(e.getSource().equals(buttonX) || e.getSource()
+                .equals(buttonX1) || e.getSource().equals(buttonX2) ){
             controller.onButtonClick(ButtonEnum.TO_TITLE);
         }
     }
@@ -185,7 +191,8 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
         loadTask = new TimerTask() {
             @Override
             public void run() {
-                if(loadingBar.getValue()>load_milestone && load_halt_counter<load_increase){
+                if(loadingBar.getValue()>load_milestone 
+                        && load_halt_counter<load_increase){
                     load_halt_counter ++;
                 } else if(load_halt_counter>=load_increase){
                     labelLoading.setText(hints[loadingBar.getValue()/10]);
@@ -375,9 +382,10 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
     
     //self is the last player
     private void drawGrid(int player) {
-        
+        if(model.getGrid(pids[player], 0, 0)==DISABLE_GRID)
+            return;
         for(int i=0;i<100;i++){
-            byte val = model.getGrid(pids[player], i/10, i%10);
+            byte val = model.getGrid(model.get(pids[player].name,pids[player].id), i/10, i%10);
             if(player==pids.length-1 || val >= NULL_ATTACKED)
                 gridButton[player][i].setIcon(icons[val]);
             else gridButton[player][i].setIcon(icons[NULL]);
@@ -386,7 +394,6 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
     }
     
     private void drawGhostGrid(int index, int size, boolean vertical) {
-        
         
         for(int i=0;i<size;i++)
             if(vertical){
@@ -556,7 +563,7 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
             case 4:
                 p1Name.setText(pids[0].name);
                 p2Name.setText(pids[1].name);
-                p3Name.setText(pids[3].name);
+                p3Name.setText(pids[2].name);
                 left.setBackground(NavyBlue);
                 middle.setBackground(NavyBlue);
                 right.setBackground(NavyBlue);
@@ -574,25 +581,6 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
                 if(i<gridButton.length-1)
                     temp.removeActionListener(temp.getActionListeners()[0]);
                 temp.getParent().remove(temp);
-//                switch(playerCount){
-//                    case 2:
-//                        switch(i){
-//                            case 0: middle.remove(temp); break;
-//                            case 1: self.remove(temp); break; }
-//                        break;
-//                    case 3:
-//                        switch(i){
-//                            case 0: left.remove(temp); break;
-//                            case 1: right.remove(temp); break;
-//                            case 2: self.remove(temp); break; }
-//                        break;
-//                    case 4:
-//                        switch(i){
-//                            case 0: left.remove(temp); break;
-//                            case 1: middle.remove(temp); break;
-//                            case 2: right.remove(temp); break;
-//                            case 3: self.remove(temp); break; }
-//                        break; }
             }
         }
         
@@ -608,8 +596,9 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
     public void enableAiming() {
         //enable all except self
         for (int i=0;i<gridButton.length-1; i++)
-            for (JButton tile : gridButton[i])
-                tile.setEnabled(true);
+            if(model.getGrid(pids[i], 0, 0)!=DISABLE_GRID)
+                for (JButton tile : gridButton[i])
+                    tile.setEnabled(true);
     }
 
     public void disableAiming() {
@@ -1433,6 +1422,57 @@ public class MainView extends JFrame implements IView, ActionListener, MouseList
         if(myTurn)
             labelHint.setText(yourTurnHint);
         else labelHint.setText(waitingForTurnHint);
+    }
+
+    @Override
+    public void disableGrid(String enemyName, int enemyId, boolean isDead) {
+        int index = -1;
+        
+        for(int i=0; i<pids.length; i++)
+            if(pids[i].equals(enemyName, enemyId)){
+                index = i;
+                break;
+            }
+        
+        if(index>-1){
+            model.setGrid(pids[index], 0, 0, DISABLE_GRID);
+            for (JButton tile : gridButton[index])
+                tile.setEnabled(false);
+            
+            String text = "[ "+pids[index].name+" - "
+                    +(isDead?"ANNIHILATED":"DISCONNECTED")+" ]";
+        
+            switch(model.getPlayerCount()){
+                case 3:
+                    switch(index){
+                        case 0:
+                            p1Name.setText(text);
+                            left.setBackground(DarkRed);
+                            break;
+                        case 1:
+                            p3Name.setText(text);
+                            right.setBackground(DarkRed);
+                            break;
+                    }
+                    break; 
+                case 4:
+                    switch(index){
+                        case 0:
+                            p1Name.setText(text);
+                            left.setBackground(DarkRed);
+                            break;
+                        case 1:
+                            p2Name.setText(text);
+                            middle.setBackground(DarkRed);
+                            break;
+                        case 2:
+                            p3Name.setText(text);
+                            right.setBackground(DarkRed);
+                            break;
+                    }
+                    break;
+            }
+        }
     }
 
 

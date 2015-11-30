@@ -22,6 +22,8 @@ public class Codec {
             case S_CONNECT_OK:
             case S_ATTACK:
             case S_TURN:
+            case S_DEAD:
+            case S_DISCONNECT:
                 return header + separator + args[0] + separator + args[1];
             case S_ROOSTER:
             case S_START:

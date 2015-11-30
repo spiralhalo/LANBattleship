@@ -39,7 +39,7 @@ public interface IModel {
     public String getStartBroadcast();
     public String getAttackBroadcast(HashMap<PlayerId,LinkedList> attack);
 //    public String getStandingsBroadcast();
-    public String getGridBroadcast();
+//    public String getGridBroadcast();
     public String getResultBroadcast();
     public void createOrUpdateRooster();
     public void createOrUpdateStandings(boolean passive);

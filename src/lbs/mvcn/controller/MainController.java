@@ -6,7 +6,6 @@
  */
 package lbs.mvcn.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import javax.swing.JOptionPane;
@@ -25,12 +24,14 @@ import static lbs.mvcn.net.protocol.ServerHeaders.*;
 import static lbs.mvcn.net.protocol.Constants.*;
 import static lbs.mvcn.net.protocol.Codec.*;
 import static lbs.mvcn.model.Constants.*;
+import static lbs.mvcn.controller.StateEnum.*;
 /**
  *
  * @author spiralhalo
  */
 
-public class MainController implements IViewController, INetController, IServerController{
+public class MainController implements IViewController,
+        INetController,IServerController{
     
     private IView view;                     //handles gui
     private IServer server;                 //server handles server-side communication. only used when player is acting as server
@@ -49,6 +50,7 @@ public class MainController implements IViewController, INetController, IServerC
     private HashMap<PlayerId, LinkedList> tempAttackReceived; //used by server to record attacks given to a player in the current round
     private PlayerId[] turnLineup;          //used by server when activating "turn based" mode
     private int playerTurn;                 //used by server when "turn based" mode is active... which is when only 2 players are left
+    private StateEnum state;
 
     public MainController(){
         view = new MainView();
@@ -60,6 +62,7 @@ public class MainController implements IViewController, INetController, IServerC
     }
     
     private void prepareJoinNewGame(boolean master) {
+        state = NOT_INGAME;
         model.resetAll();
         view.setModel(model);
         isMaster = master;
@@ -105,6 +108,7 @@ public class MainController implements IViewController, INetController, IServerC
                 model.resetAlive();
                 turnLineup = null;
                 playerTurn = 0;
+                state = INGAME_INITIAL_PHASE;
                 server.broadcast(encode(S_START,  model.getStartBroadcast()));
                 PlayerId[] temp3 = model.toArray();
                 PlayerId[] temp2 = new PlayerId[temp3.length];
@@ -124,7 +128,6 @@ public class MainController implements IViewController, INetController, IServerC
                 tempAttackReceived = new HashMap<>();
                 view.showGameScreen(temp2);
                 view.modePlacing();
-                
                 break;
             case JOIN_SERVER:
                 view.showJoinScreen();
@@ -136,14 +139,17 @@ public class MainController implements IViewController, INetController, IServerC
             case HOSTNAME_OK:
                 isJoining = true;
                 prepareJoinNewGame(false);
-                int status = net.connectToServer(playerName, view.getDestHostNameInput(), PORT);
+                int status = net.connectToServer(playerName,
+                        view.getDestHostNameInput(), PORT);
                 switch (status){
                     case 1:
-                        JOptionPane.showMessageDialog(null, "Unknown error occured.", "Can't connect to server", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Unknown error occured.",
+                                "Can't Connect to Server", JOptionPane.WARNING_MESSAGE);
                         break;
                     case 2: //host not found
                     case 3: //host found, but no server running on port 16273
-                        JOptionPane.showMessageDialog(null, "Server not found.", "Can't connect to server", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Server not found.",
+                                "Can't Connect to Server", JOptionPane.WARNING_MESSAGE);
                         break;
                 }
                 if(status!=0){
@@ -199,7 +205,8 @@ public class MainController implements IViewController, INetController, IServerC
                     for(String pdata:playerData){
                         String[] unitData = pdata.split(MainModel.unit_separator);
                         
-                        temp = model.addIfNotExist(Integer.parseInt(unitData[3]), unitData[0], unitData[1]);
+                        temp = model.addIfNotExist(Integer.parseInt(unitData[3]),
+                                unitData[0], unitData[1]);
                         model.setReady(temp, Boolean.parseBoolean(unitData[2]));
                     }
                 }
@@ -207,19 +214,24 @@ public class MainController implements IViewController, INetController, IServerC
                 break;
             case S_START:
                 if(!isMaster && isReady){
+                    state=INGAME_INITIAL_PHASE;
                     String[] playerData = decoded[1].split(MainModel.player_separator);
+//                    model=new MainModel();
                     model.resetAll();
-                    PlayerId[] temp2 = new PlayerId[playerData.length];
-                    int i = 0;
+                    
                     for(String pdata:playerData){
                         String[] unitData = pdata.split(MainModel.unit_separator);
-                        temp = model.addIfNotExist(Integer.parseInt(unitData[0]), unitData[1], unitData[2]);
-                        if(temp.name.equals(playerName) && temp.id == serverId){
-                            temp2[temp2.length-1] = temp;
-                        } else {
-                            temp2[i++] = temp;
-                        }
+                        model.addIfNotExist(Integer.parseInt(unitData[0]),
+                                unitData[1], unitData[2]);
                     }
+                    PlayerId[] temp2 = model.toArray();
+                    temp = model.get(playerName, serverId);
+                    for(int i=0;i<temp2.length-1;i++)
+                        if(temp2[i].equals(temp)){
+                            temp2[i] = temp2[temp2.length-1];
+                            break;
+                        }
+                    temp2[temp2.length-1]=temp;
                     
                     view.setModel(model);
                     view.showGameScreen(temp2);
@@ -229,12 +241,14 @@ public class MainController implements IViewController, INetController, IServerC
                     //not ready -> autokick
                     net.closeConnection();
                     view.showMainMenuScreen(playerName);
-                    JOptionPane.showMessageDialog(null, "The game has started.", "Left server", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "The game has started.",
+                            "Left Server", JOptionPane.INFORMATION_MESSAGE);
                     break;
                 }
                 break;
             case S_PLACEMENT:
                 if(!isMaster){
+                    state=INGAME;
                     model.processAllGridData(decoded[1]);
                     view.updateStandingsTable(false);
                     view.modeBegin();
@@ -242,7 +256,8 @@ public class MainController implements IViewController, INetController, IServerC
                 break;
             case S_ATTACK:
                 if(!isMaster){
-                    model.setAttacked(model.get(decoded[2], Integer.parseInt(decoded[1])), true);
+                    model.setAttacked(model.get(decoded[2],
+                            Integer.parseInt(decoded[1])), true);
                     view.updateStandingsTable(true);
                 }
                 break;
@@ -271,10 +286,19 @@ public class MainController implements IViewController, INetController, IServerC
                 break;
             case S_FINISH:
                 if(!isMaster){
+                    state=NOT_INGAME;
                     model.processResultData(decoded[1]);
                     view.cleanGameScreen();
                     view.showResultScreen();
                     net.closeConnection();
+                }
+                break;
+            case S_DISCONNECT:
+            case S_DEAD:
+                if(!isMaster&&Integer.parseInt(decoded[1])!=serverId
+                        &&!playerName.equals(decoded[2])){
+                    view.disableGrid(decoded[2], Integer.parseInt(decoded[1]),
+                            header.equals(S_DEAD));
                 }
                 break;
         }
@@ -285,8 +309,14 @@ public class MainController implements IViewController, INetController, IServerC
         //TODO Implement this further.
         net = null;
         if(isJoining){
-            JOptionPane.showMessageDialog(null, "Server is full.", "Can't connect to server", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Server is full.",
+                    "Can't Connect to Server", JOptionPane.WARNING_MESSAGE);
             view.showJoinScreen();
+        } else if(state==INGAME){
+            view.cleanGameScreen();
+            view.showMainMenuScreen(playerName);
+            JOptionPane.showMessageDialog(null, "Connection lost.",
+                    "Disconnected from Server", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -327,16 +357,7 @@ public class MainController implements IViewController, INetController, IServerC
             case C_PLACEMENT:
                 serverSignalReceived ++;
                 model.processPlacementData(clientName, serverId, decoded[1]);
-                if(serverSignalReceived==model.getPlayerCount()){
-                    server.broadcast(encode(S_PLACEMENT,model.getPlacementBroadcast()));
-                    serverSignalReceived = 0;
-                    view.updateStandingsTable(false);
-                    if(turnLineup == null){
-                        view.modeBegin();
-                    } else {
-                        processTurn();
-                    }
-                }
+                attemptProceedToFirstBegin();
                 break;
             case C_ATTACK:
                 temp = model.get(decoded[2], Integer.parseInt(decoded[1]));
@@ -351,38 +372,16 @@ public class MainController implements IViewController, INetController, IServerC
                 server.broadcast(encode(S_ATTACK,""+serverId,clientName));
                 
                 view.updateStandingsTable(true);
-                if(turnLineup!= null || serverSignalReceived==model.getAliveCount()){
-                    serverSignalReceived = 0;
-                    server.broadcast(encode(S_ATTACKS, model.getAttackBroadcast(tempAttackReceived)));
-                    Object[] attacker = tempAttackReceived.keySet().toArray();
-                    for(Object p:attacker){
-                        for(Object i:tempAttackReceived.get((PlayerId)p))
-                            model.attackGrid((PlayerId)p, ((int)i)/10, ((int)i)%10);
-                        tempAttackReceived.remove((PlayerId)p);
-                    }
-                    if(model.getHealth(model.get(playerName, this.serverId)) <= 0){
-                        net.sendMessage(encode(C_DEAD));
-                        view.modeDead();
-                    }
-                    if(turnLineup==null&&model.getAliveCount()==2){
-                        turnLineup = new PlayerId[2];
-                        int i = 0;
-                        for(PlayerId p:model.toArray())
-                            if(model.getHealth(p)>0)
-                                turnLineup[i++] = p;
-                    }
-                    view.updateStandingsTable(false);
-                    view.modeExecute();
-                }
+                attemptProceedToExecution();
                 break;
             case C_DEAD:
                 model.setAlive(model.get(clientName, serverId), false);
+                server.broadcast(encode(S_DEAD, ""+serverId, clientName));
                 if(model.getAliveCount()<=1){
-                    view.cleanGameScreen();
-                    view.showResultScreen();
+                    state=NOT_INGAME;
                     server.broadcast(encode(S_FINISH,model.getResultBroadcast()));
-                    server.closeAll();
-                    net.closeConnection();
+                    serverCleanup();
+                    view.showResultScreen();
                 }
                 break;
         }
@@ -390,8 +389,24 @@ public class MainController implements IViewController, INetController, IServerC
     
     @Override
     synchronized public void onClientLeft(String clientName, int serverId) {
-        removePlayer(clientName, serverId);
-        broadcastRooster();
+        if(state == NOT_INGAME){
+            removePlayer(clientName, serverId);
+            broadcastRooster();
+        } else {
+            model.setAlive(model.get(clientName, serverId), false);
+            server.broadcast(encode(S_DISCONNECT,""+serverId,clientName));
+            view.disableGrid(clientName, serverId, false);
+            if(model.getAliveCount()<2) {
+                serverCleanup();
+                view.showMainMenuScreen(playerName);
+                JOptionPane.showMessageDialog(null, "Last player has left the game.",
+                        "Game Can't Continue", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                if(state==INGAME)
+                    attemptProceedToExecution();
+                else attemptProceedToFirstBegin();
+            }
+        }
     }
 
     @Override
@@ -417,9 +432,64 @@ public class MainController implements IViewController, INetController, IServerC
         model.remove(temp);
     }
     
+    //for server
     private void broadcastRooster() {
         server.broadcast(encode(S_ROOSTER, model.getRoosterBroadcast()));
         view.updateRoosterTable();
+    }
+    
+    //for server
+    private void serverCleanup() {
+        server.closeAll();
+        net.closeConnection();
+        view.cleanGameScreen();
+    }
+    
+    //for server
+    private void attemptProceedToExecution() {
+        if(turnLineup!= null || serverSignalReceived==model.getAliveCount()){
+            serverSignalReceived = 0;
+            server.broadcast(encode(S_ATTACKS, model.getAttackBroadcast(tempAttackReceived)));
+            Object[] attacker = tempAttackReceived.keySet().toArray();
+            for(Object p:attacker){
+                for(Object i:tempAttackReceived.get((PlayerId)p))
+                    model.attackGrid((PlayerId)p, ((int)i)/10, ((int)i)%10);
+                tempAttackReceived.remove((PlayerId)p);
+            }
+            if(model.getHealth(model.get(playerName, this.serverId)) <= 0){
+                net.sendMessage(encode(C_DEAD));
+                view.modeDead();
+            }
+            view.updateStandingsTable(false);
+            view.modeExecute();
+        }
+    }
+    
+    //for server
+    private void attemptProceedToFirstBegin() {
+        attemptActivateTurnBased();
+        if(serverSignalReceived==model.getAliveCount()){
+            state=INGAME;
+            server.broadcast(encode(S_PLACEMENT,model.getPlacementBroadcast()));
+            serverSignalReceived = 0;
+            view.updateStandingsTable(false);
+            if(turnLineup == null){
+                view.modeBegin();
+            } else {
+                processTurn();
+            }
+        }
+    }
+    
+    //for server
+    private void attemptActivateTurnBased(){
+        if(turnLineup==null&&model.getAliveCount()==2){
+            turnLineup = new PlayerId[2];
+            int i = 0;
+            for(PlayerId p:model.toArray())
+                if(model.getHealth(p)>0)
+                    turnLineup[i++] = p;
+        }
     }
 
     @Override
@@ -455,6 +525,8 @@ public class MainController implements IViewController, INetController, IServerC
     public void onFinishExecution() {
         model.resetAttacked();
         view.updateStandingsTable(false);
+        if(isMaster)
+            attemptActivateTurnBased();
         if(isMaster && turnLineup != null)
             processTurn();
         else view.modeBegin();

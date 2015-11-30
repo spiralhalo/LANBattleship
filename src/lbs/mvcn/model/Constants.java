@@ -26,5 +26,6 @@ public class Constants {
     public static byte SHIPHEAD_V_ATTACKED = 11;    //[/x|]
     public static byte SHIPTAIL_H_ATTACKED = 12;    //[=x>]
     public static byte SHIPTAIL_V_ATTACKED = 13;    //[|x/]
+    public static byte DISABLE_GRID        = 99;    //put on first tile to flag grid as disabled
     
 }

@@ -42,5 +42,6 @@ public interface IView {
     public void cleanGameScreen();
     public void showResultScreen();
     public void displayTurn(boolean myTurn);
+    public void disableGrid(String enemyName, int enemyId, boolean isDead);
     
 }

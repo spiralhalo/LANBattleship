@@ -28,18 +28,12 @@ public class MainModel implements IModel{
         isReady = null;
         hasAttacked = null;
     }
-
-    private PlayerId exists(int playerId, String playerName) {
-        for(PlayerId pid : grid.keySet())
-            if(pid.equals(playerName, playerId))
-                return pid;
-        return null;
-    }
     
     @Override
     public PlayerId addIfNotExist(int playerId, String ipAddress, String playerName) {
-        PlayerId temp = exists(playerId, playerName);
-        if(temp != null) return temp;
+        PlayerId temp = get(playerName, playerId);
+        if(temp != null)
+            return temp;
         temp = new PlayerId(playerName, ipAddress, playerId);
         grid.put(temp, new byte[100]);
         return temp;
@@ -75,6 +69,8 @@ public class MainModel implements IModel{
     @Override
     public int getHealth(PlayerId id) {
         
+        if(alive!=null && alive.get(id) != true)
+            return 0;
         byte[] temp = grid.get(id).clone();
         Arrays.sort(temp);              //sort so that all attacked grid will gather at the end of the array
         int i = 0;
@@ -149,25 +145,6 @@ public class MainModel implements IModel{
         
         return broadcastData;
         
-    }
-    
-//    @Override
-//    public String getStandingsBroadcast(){
-//        
-//        String broadcastData = "";
-//        createOrUpdateStandings(false);
-//        for (int i = 0; i<grid.size(); i++) {
-//            broadcastData += standings[i][0] + unit_separator + standings[i][1] + unit_separator + standings[i][2] + unit_separator + standings[i][3];
-//            if(i<grid.size()-1)
-//                broadcastData += player_separator;
-//        }
-//        return broadcastData;
-//    }
-    
-    @Override
-    public String getGridBroadcast(){
-        //TODO implement this
-        return null;
     }
     
     private Object[][] rooster;
@@ -428,10 +405,10 @@ public class MainModel implements IModel{
     @Override
     public int getAliveCount() {
         int i = 0;
-        System.out.println(alive.toString());
+//        System.out.println(alive.toString());
         for(PlayerId key : alive.keySet())
             if(alive.get(key)) i++;
-        System.out.println("alive:"+i);
+//        System.out.println("alive:"+i);
         return i;
     }
 

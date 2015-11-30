@@ -27,4 +27,9 @@ public class PlayerId {
         return id == serverId && name.equals(playerName);
         
     }
+    
+    @Override
+    public String toString(){
+        return ""+id+","+name;
+    }
 }
